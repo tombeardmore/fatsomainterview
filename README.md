@@ -19,7 +19,7 @@ event_id | event_name | promoter_name | email | phone | instagram_handle | websi
 ```
 
 ### Run
-Import `FATSOMA_INTERVIEW.json`, click **Test Workflow**.
+Import -> Test Workflow
 ---
 
 ## Where output goes
