@@ -71,3 +71,5 @@ All records land in Google Sheets regardless of outcome. The `validation_status`
 
 * Retry logic and error handling designed to keep the flow running and flag, rather than terminating unless unavoidable.
 
+* I chose Sheets over CSV as this is what I would likely use in production for this usecase. CSV would have been the easier 'interview' choice from a setup POV
+
