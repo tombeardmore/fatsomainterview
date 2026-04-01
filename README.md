@@ -3,7 +3,7 @@
 ## Setup
 
 ### Prerequisites
-- n8n (cloud or local) — see [n8n docs](https://docs.n8n.io/hosting/)
+- n8n
 - OpenAI API key
 - Google account with Sheets access 
 
