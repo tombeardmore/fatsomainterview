@@ -67,5 +67,7 @@ All records land in Google Sheets regardless of outcome. The `validation_status`
 
 * I included slack error messages but disabled these, just to show where I would look to put them, and I think Slack is ideal for key failure messages.
  
-* All four contact fields are required by the JSON schema — the LLM is instructed to return an empty string for any field it cannot find. This keeps the Google Sheets schema consistent across every row and avoids type errors or blank cell handling issues downstream. A null value would require conditional handling at every point the data is consumed; an empty string is unambiguous and safe.
+* All four contact fields are required by the JSON schema.The LLM is instructed to return an empty string for any field it cannot find.
+
+* Retry logic and error handling designed to keep the flow running and flag, rather than terminating unless unavoidable.
 
