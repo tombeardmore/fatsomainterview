@@ -9,8 +9,8 @@
 
 ### Credentials
 Configure and assign credentials in n8n for:
-- **OpenAI API** → OpenAI Chat Model1
-- **Google Sheets OAuth2** → Read Existing Records, Append New Record, Update Existing Record
+- **OpenAI API** 
+- **Google Sheets OAuth2** 
 
 ### Google Sheet
 Create a sheet with these headers in row 1:
@@ -53,7 +53,7 @@ All records land in Google Sheets regardless of outcome. The `validation_status`
 
 - JSON structure is enforced by the structured output parser rather than a manual validation step - a lightweight Code node could be added for content-level checks (email format, URL normalisation) but was considered overkill for this brief.
 
-- Assumed promoters with no bio do not need flagged separately in validation, flagged as "NO DATA"
+- Assumed promoters with no bio do not need flagged separately in validation, flagged as "NO DATA". Promoters with no bio could skip LLM call entirely to save tokens
 
 - Event ID is assumed to be unique and a stable key for idempotency
 
