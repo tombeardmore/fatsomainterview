@@ -1,0 +1,765 @@
+{
+  "name": "FATSOMA INTERVIEW",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "22e65aa5-f6ec-41ec-8be1-c46de4cd7f91",
+      "name": "Start Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2768,
+        976
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "events",
+              "value": "[{\"event_id\": 101, \"event_name\": \"Manchester Indie Fest 2026\", \"promoter_name\": \"Northern Sounds Live\"}, {\"event_id\": 102, \"event_name\": \"Techno Warehouse Rave\", \"promoter_name\": \"Bassline Productions UK\"}, {\"event_id\": 103, \"event_name\": \"Day Party Social\", \"promoter_name\": \"Sunset Sessions\"}]",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5cea4bf4-8b37-47cf-9ac1-e0fdc3d56326",
+      "name": "Load Event Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2544,
+        976
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "events",
+        "options": {}
+      },
+      "id": "fb54969e-f218-488c-8c9a-3d798793c2b9",
+      "name": "Split Events",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -2320,
+        976
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "event_id",
+              "value": "={{ $json.event_id }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "event_name",
+              "value": "={{ $json.event_name }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "promoter_name",
+              "value": "={{ $json.promoter_name }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "promoter_bio",
+              "value": "={{ $json.promoter_name === 'Northern Sounds Live' ? 'Welcome to Northern Sounds! Bringing the best indie gigs to Manny. Bookings: bookings@northernsounds.co.uk Call us on +44 7911 123456 Follow our Instagram @northernsoundslive www.northernsounds.co.uk' : $json.promoter_name === 'Bassline Productions UK' ? 'Underground warehouse events across the UK. DM us on Insta @basslineprod_uk For partnerships email hello@basslineprods.com More info at https://basslineprods.com' : $json.promoter_name === 'Sunset Sessions' ? 'Summer day parties and terrace takeovers. Contact: sunsetsessions.events@gmail.com WhatsApp 07900 111222' : '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "47b87e48-053e-4e42-b2dd-f925af165b68",
+      "name": "Add Promoter Bio",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2096,
+        976
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.promoter_bio }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a data extraction specialist. Extract contact information from the provided promoter bio text. For each field (email, phone, instagram_handle, website), extract the value if present or return an empty string if not found. For instagram handles, remove the @ symbol. Be precise and only extract information that is clearly stated."
+        }
+      },
+      "id": "fe6520c1-d7bd-4eb3-8a4f-cb4c6b26fd29",
+      "name": "Extract Contact Details",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1872,
+        976
+      ],
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"email\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"Email address or empty string if not found\"\n\t\t},\n\t\t\"phone\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"Phone number or empty string if not found\"\n\t\t},\n\t\t\"instagram_handle\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"Instagram handle without @ symbol or empty string if not found\"\n\t\t},\n\t\t\"website\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"Website URL or empty string if not found\"\n\t\t}\n\t},\n\t\"required\": [\"email\", \"phone\", \"instagram_handle\", \"website\"]\n}"
+      },
+      "id": "1d442979-a725-49e7-811f-c734a05cbae1",
+      "name": "Contact Schema Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1744,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "abdf73cb-d4d9-45fa-9a61-17bb8c90273e",
+              "leftValue": "={{ $json.output.email }}",
+              "rightValue": "={{ $json.output.phone }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "c7d4e80b-8104-4ec3-9d70-81e3f722bfe0",
+              "leftValue": "={{ $json.output.phone }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "9c773b85-0fe4-4aea-8586-fea4b44f8853",
+              "leftValue": "={{ $json.output.instagram_handle }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "92663b1b-bfd4-4df0-82c9-4d9eeec39b4f",
+              "leftValue": "={{ $json.output.website }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1520,
+        896
+      ],
+      "id": "116276df-5254-4c81-96f2-9e0af0ec6e5f",
+      "name": "DATA VALIDATION"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "event_id",
+              "value": "={{ $('Add Promoter Bio').item.json.event_id }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "event_name",
+              "value": "={{ $('Add Promoter Bio').item.json.event_name }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "promoter_name",
+              "value": "={{ $('Add Promoter Bio').item.json.promoter_name }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "email",
+              "value": "={{ $json.output?.email || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "phone",
+              "value": "={{ $json.output?.phone || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "instagram_handle",
+              "value": "={{ $json.output?.instagram_handle || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-7",
+              "name": "website",
+              "value": "={{ $json.output?.website || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-8",
+              "name": "extraction_timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "e4a37947-d937-46b7-bc3a-697551431537",
+              "name": "validation_status",
+              "value": "={{ ($json.output?.email && $json.output?.phone && $json.output?.instagram_handle && $json.output?.website) ? 'OK' : 'PARTIAL' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "eb355c89-f7ec-4d63-8f41-fb7512798ee4",
+      "name": "DATA RETURNED",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1312,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "content": "##  DATA INPUT\nLoads sample event data and splits into individual items for processing. ",
+        "height": 112,
+        "width": 400,
+        "color": 2
+      },
+      "id": "b72aa046-878e-41c1-944a-690a33b726bf",
+      "name": "Note: Data Input",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2592,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "content": "##  AI EXTRACTION\nUses GPT-4 to extract data",
+        "height": 120,
+        "width": 400,
+        "color": 3
+      },
+      "id": "1c41308f-a6e3-446c-9018-b6424e5474be",
+      "name": "Note: AI Extraction",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1904,
+        1376
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## DATA VALIDATION\nChecks if AI extracted at least one contact field.\n\n-  Data found → Format with 'OK' or 'PARTIAL' status\n-  No data → Format with 'NO DATA' status",
+        "height": 168,
+        "width": 400,
+        "color": 4
+      },
+      "id": "6a5a8d5c-0809-4db0-a914-97eb587c7439",
+      "name": "Note: Validation",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1952,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "content": "##  Write\n\nUpsert/append based on event id",
+        "height": 124,
+        "width": 480,
+        "color": 5
+      },
+      "id": "01a7e59e-2676-4999-be9f-a6ee3730d996",
+      "name": "Note: Duplicate Detection",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -944,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -1920,
+        1216
+      ],
+      "id": "88692e5c-fe79-4c36-a3ae-6489934d5190",
+      "name": "OpenAI Chat Model1",
+      "retryOnFail": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "sv7e8yef7inT9Eek",
+          "name": "OpenAI account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "text": "={{ $workflow.name }} - {{ $workflow.id }}\nLLM EXTRACTION FAILED -  {{ $json.error }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        -1520,
+        1152
+      ],
+      "id": "7222455f-bdbb-405b-a5fb-a15004c56bf9",
+      "name": "Send a message",
+      "webhookId": "08a6e957-f52e-4fdb-ad01-95d082469610",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "event_id",
+              "value": "={{ $('Add Promoter Bio').item.json.event_id }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "event_name",
+              "value": "={{ $('Add Promoter Bio').item.json.event_name }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "promoter_name",
+              "value": "={{ $('Add Promoter Bio').item.json.promoter_name }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "email",
+              "value": "={{ $json.output?.email || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "phone",
+              "value": "={{ $json.output?.phone || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "instagram_handle",
+              "value": "={{ $json.output?.instagram_handle || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-7",
+              "name": "website",
+              "value": "={{ $json.output?.website || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-8",
+              "name": "extraction_timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "e4a37947-d937-46b7-bc3a-697551431537",
+              "name": "validation_status",
+              "value": "NO DATA",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a0ccfc82-3b95-4528-820f-c7855377eaaa",
+      "name": "NO DATA RETURNED",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1296,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        -768,
+        1040
+      ],
+      "id": "8b48bb2d-0270-4a20-ac30-14603949dc2c",
+      "name": "Failure Message",
+      "webhookId": "90a02bf6-a6cd-4eed-ac55-faa0c57ff15e",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1FEUQfkb1Xp8ncUKcsAsL119kXvXd9jDCkG2U4ubmD6w",
+          "cachedResultName": "FATSOMA N8N",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FEUQfkb1Xp8ncUKcsAsL119kXvXd9jDCkG2U4ubmD6w/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FEUQfkb1Xp8ncUKcsAsL119kXvXd9jDCkG2U4ubmD6w/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "event_id"
+          ],
+          "schema": [
+            {
+              "id": "event_id",
+              "displayName": "event_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "event_name",
+              "displayName": "event_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "promoter_name",
+              "displayName": "promoter_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "instagram_handle",
+              "displayName": "instagram_handle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "extraction_timestamp",
+              "displayName": "extraction_timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "validation_status",
+              "displayName": "validation_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW"
+        }
+      },
+      "id": "1033930d-1022-4b1a-b790-a4e4185e02b5",
+      "name": "Write to sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -976,
+        944
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "p0KAFIYN08mUj4Tt",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Start Workflow": {
+      "main": [
+        [
+          {
+            "node": "Load Event Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Event Data": {
+      "main": [
+        [
+          {
+            "node": "Split Events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Events": {
+      "main": [
+        [
+          {
+            "node": "Add Promoter Bio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contact Schema Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Extract Contact Details",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Promoter Bio": {
+      "main": [
+        [
+          {
+            "node": "Extract Contact Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Contact Details": {
+      "main": [
+        [
+          {
+            "node": "DATA VALIDATION",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DATA VALIDATION": {
+      "main": [
+        [
+          {
+            "node": "DATA RETURNED",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NO DATA RETURNED",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DATA RETURNED": {
+      "main": [
+        [
+          {
+            "node": "Write to sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extract Contact Details",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "NO DATA RETURNED",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NO DATA RETURNED": {
+      "main": [
+        [
+          {
+            "node": "Write to sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write to sheet": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Failure Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7ff649d6-c18e-4438-945f-fbba52cef1b7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4e897be92566e9a5890a763d1590dffb437ffd06b3a1d01c2c94450b8af9d356"
+  },
+  "id": "vPqdwII8jwxYWkAy",
+  "tags": []
+}
